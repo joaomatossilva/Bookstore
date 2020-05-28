@@ -7,34 +7,26 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Bookstore.Data.Model;
+using MediatR;
+using Edit = Bookstore.Application.Authors.Edit;
 
 namespace Bookstore.Web.Pages.Authors
 {
     public class EditModel : PageModel
     {
-        private readonly Bookstore.Data.Model.BookstoreDbContext _context;
+        private readonly IMediator _mediator;
 
-        public EditModel(Bookstore.Data.Model.BookstoreDbContext context)
+        public EditModel(IMediator mediator)
         {
-            _context = context;
+            _mediator = mediator;
         }
 
         [BindProperty]
-        public Author Author { get; set; }
+        public Edit.Command Command { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(Guid? id)
+        public async Task<IActionResult> OnGetAsync(Edit.Query query)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            Author = await _context.Authors.FirstOrDefaultAsync(m => m.Id == id);
-
-            if (Author == null)
-            {
-                return NotFound();
-            }
+            Command = await _mediator.Send(query);
             return Page();
         }
 
@@ -47,30 +39,9 @@ namespace Bookstore.Web.Pages.Authors
                 return Page();
             }
 
-            _context.Attach(Author).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AuthorExists(Author.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _mediator.Send(Command);
 
             return RedirectToPage("./Index");
-        }
-
-        private bool AuthorExists(Guid id)
-        {
-            return _context.Authors.Any(e => e.Id == id);
         }
     }
 }
