@@ -42,10 +42,8 @@ namespace Bookstore.Data.Queries.Authors
                     query = query.Where(a => a.Name.Contains(input.Name));
                 }
 
-                var projection = query
-                    .ProjectTo<AuthorWithPublishedBooksCount>(_mapper.ConfigurationProvider);
-
-                return await projection
+                return await query
+                    .ProjectTo<AuthorWithPublishedBooksCount>(_mapper.ConfigurationProvider)
                     .ToListAsync();
             }
         }
