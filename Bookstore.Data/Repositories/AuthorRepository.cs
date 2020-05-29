@@ -9,6 +9,8 @@ using Author = Bookstore.Domain.Model.Author;
 
 namespace Bookstore.Data.Repositories
 {
+    using System.Linq;
+
     public class AuthorRepository : IAuthorRepository
     {
         private readonly BookstoreDbContext _dbContext;
@@ -22,9 +24,11 @@ namespace Bookstore.Data.Repositories
         {
             var author = await _dbContext.Authors
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
+                .Where(x => x.Id == id)
+                .Select(x => new { Entity = x, HasBooks = x.BookAuthors.Count > 0 })
+                .FirstOrDefaultAsync();
 
-            return author == null ? null : new Author(author.Id, author.Name);
+            return author == null ? null : new Author(author.Entity.Id, author.Entity.Name, author.HasBooks);
         }
 
         public async Task Save(Author entity)

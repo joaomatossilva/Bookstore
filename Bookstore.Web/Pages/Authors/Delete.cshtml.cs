@@ -9,49 +9,32 @@ using Bookstore.Data.Model;
 
 namespace Bookstore.Web.Pages.Authors
 {
+    using Application.Authors;
+    using MediatR;
+
     public class DeleteModel : PageModel
     {
-        private readonly Bookstore.Data.Model.BookstoreDbContext _context;
+        private readonly IMediator mediator;
 
-        public DeleteModel(Bookstore.Data.Model.BookstoreDbContext context)
+        public DeleteModel(IMediator mediator)
         {
-            _context = context;
+            this.mediator = mediator;
         }
 
         [BindProperty]
-        public Author Author { get; set; }
+        public Delete.Command Command { get; set; }
+        public Delete.Model Model { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(Guid? id)
+        public async Task<IActionResult> OnGetAsync(Delete.Query query)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            Author = await _context.Authors.FirstOrDefaultAsync(m => m.Id == id);
-
-            if (Author == null)
-            {
-                return NotFound();
-            }
+            Model = await mediator.Send(query);
+            Command = new Delete.Command {Id = Model.Id};
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(Guid? id)
+        public async Task<IActionResult> OnPostAsync()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            Author = await _context.Authors.FindAsync(id);
-
-            if (Author != null)
-            {
-                _context.Authors.Remove(Author);
-                await _context.SaveChangesAsync();
-            }
-
+            await mediator.Send(Command);
             return RedirectToPage("./Index");
         }
     }
