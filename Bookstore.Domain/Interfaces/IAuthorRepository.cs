@@ -7,6 +7,9 @@ namespace Bookstore.Domain.Interfaces
     public interface IAuthorRepository
     {
         Task<Author> GetById(Guid id);
+
         Task Save(Author entity);
+
+        Task Delete(Author author);
     }
 }

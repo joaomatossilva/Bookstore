@@ -9,13 +9,16 @@ using Bookstore.Data.Model;
 
 namespace Bookstore.Web.Pages.Authors
 {
+    using Application.Authors;
+    using MediatR;
+
     public class CreateModel : PageModel
     {
-        private readonly Bookstore.Data.Model.BookstoreDbContext _context;
+        private readonly IMediator mediator;
 
-        public CreateModel(Bookstore.Data.Model.BookstoreDbContext context)
+        public CreateModel(IMediator mediator)
         {
-            _context = context;
+            this.mediator = mediator;
         }
 
         public IActionResult OnGet()
@@ -24,7 +27,7 @@ namespace Bookstore.Web.Pages.Authors
         }
 
         [BindProperty]
-        public Author Author { get; set; }
+        public Create.Command Command { get; set; }
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
@@ -35,8 +38,7 @@ namespace Bookstore.Web.Pages.Authors
                 return Page();
             }
 
-            _context.Authors.Add(Author);
-            await _context.SaveChangesAsync();
+            await mediator.Send(Command);
 
             return RedirectToPage("./Index");
         }

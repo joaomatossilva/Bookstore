@@ -33,8 +33,28 @@ namespace Bookstore.Data.Repositories
             var author = await _dbContext.Authors
                 .FirstOrDefaultAsync(x => x.Id == entity.Id);
 
+            //upsert the author
+            if (author == null)
+            {
+                author = new Model.Author
+                {
+                    Id = entity.Id
+                };
+                _dbContext.Authors.Add(author);
+            }
+
             author.Name = entity.Name;
 
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task Delete(Author entity)
+        {
+            //it is possible to avoid this roundtrip by creating the Author with properties and attaching
+            var author = await _dbContext.Authors
+                .FirstOrDefaultAsync(x => x.Id == entity.Id);
+
+            _dbContext.Authors.Remove(author);
             await _dbContext.SaveChangesAsync();
         }
     }
